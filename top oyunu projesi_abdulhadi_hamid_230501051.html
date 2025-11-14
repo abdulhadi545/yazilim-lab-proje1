@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ball Animation - Advanced Features</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.5s ease;
+        }
+
+        body.day-mode {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body.night-mode {
+            background: linear-gradient(135deg, #2c3e50 0%, #1a1a2e 100%);
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        body.night-mode .stars {
+            opacity: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            max-width: 900px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        body.night-mode .container {
+            background: #2d3436;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+
+        .title-bar {
+            background: linear-gradient(180deg, #f5f5f5 0%, #e8e8e8 100%);
+            padding: 12px 15px;
+            border-bottom: 2px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        body.night-mode .title-bar {
+            background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+            border-bottom-color: #1a1a2e;
+        }
+
+        .title {
+            font-weight: bold;
+            color: #333;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: color 0.3s ease;
+        }
+
+        body.night-mode .title {
+            color: #ecf0f1;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            margin-right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.2) rotate(20deg);
+        }
+
+        .lang-selector {
+            margin-right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 2px solid #ccc;
+            background: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        body.night-mode .lang-selector {
+            background: #34495e;
+            color: #ecf0f1;
+            border-color: #1a1a2e;
+        }
+
+        .window-controls span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(0,0,0,0.2);
+        }
+
+        .window-controls span:hover {
+            transform: scale(1.15);
+        }
+
+        .minimize { background: #ffc107; }
+        .maximize { background: #4caf50; }
+        .close { background: #f44336; }
+
+        .canvas-wrapper {
+            position: relative;
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: crosshair;
+            transition: background 0.3s ease;
+        }
+
+        body.day-mode #canvas {
+            background: #d0d0d0;
+        }
+
+        body.night-mode #canvas {
+            background: #1a1a2e;
+        }
+
+        .info-panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        body.night-mode .info-panel {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .info-panel div {
+            margin: 5px 0;
+        }
+
+        .challenge-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(76, 175, 80, 0.9);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 10;
+            display: none;
+            backdrop-filter: blur(10px);
+        }
+
+        .challenge-panel.active {
+            display: block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .control-panel {
+            background: linear-gradient(180deg, #f0f0f0 0%, #e0e0e0 100%);
+            padding: 25px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 20px;
+            border-top: 2px solid #ccc;
+            transition: all 0.3s ease;
+        }
+
+        body.night-mode .control-panel {
+            background: linear-gradient(180deg, #34495e 0%, #2c3e50 100%);
+            border-top-color: #1a1a2e;
+        }
+
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 11px;
+            color: #666;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
+        }
+
+        body.night-mode .section-title {
+            color: #95a5a6;
+        }
+
+        .ball-selector {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .ball-circle {
+            border-radius: 50%;
+            background: linear-gradient(135deg, #888 0%, #666 100%);
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid #555;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        .ball-circle:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .ball-circle.active {
+            border-color: #2196F3;
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.7);
+            background: linear-gradient(135deg, #999 0%, #777 100%);
+            animation: bounce 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .small-ball { width: 42px; height: 42px; }
+        .medium-ball { width: 62px; height: 62px; }
+        .large-ball { width: 82px; height: 82px; }
+
+        .color-selector {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .color-box {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            border: 3px solid #333;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .color-box::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 24px;
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+        }
+
+        .color-box.active::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .color-box:hover {
+            transform: scale(1.15) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        .color-box.active {
+            border-width: 4px;
+            border-color: #000;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .red { background: #ff0000; }
+        .blue { background: #0000ff; }
+        .yellow { background: #ffff00; }
+        .green { background: #00ff00; }
+        .purple { background: #ff00ff; }
+        .orange { background: #ff8800; }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            font-size: 12px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.35);
+        }
+
+        button:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        #startBtn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        #stopBtn {
+            background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+            color: white;
+        }
+
+        #resetBtn {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+        }
+
+        #speedUpBtn {
+            background: linear-gradient(135deg, #2196F3 0%, #0b7dda 100%);
+            color: white;
+        }
+
+        #challengeBtn {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            color: white;
+        }
+
+        #screenshotBtn {
+            background: linear-gradient(135deg, #00bcd4 0%, #0097a7 100%);
+            color: white;
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.3s ease;
+        }
+
+        body.night-mode .modal-content {
+            background: #2d3436;
+            color: #ecf0f1;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .modal-content p {
+            font-size: 18px;
+            margin: 10px 0;
+        }
+
+        .modal-content button {
+            margin-top: 20px;
+            padding: 15px 40px;
+            font-size: 16px;
+        }
+
+        .accessibility-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 999;
+            display: none;
+        }
+
+        .accessibility-panel.active {
+            display: block;
+        }
+
+        .accessibility-panel label {
+            display: block;
+            margin: 10px 0;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .control-panel {
+                flex-direction: column;
+                gap: 25px;
+            }
+
+            .button-group {
+                width: 100%;
+            }
+
+            button {
+                flex: 1;
+                min-width: 100px;
+            }
+        }
+    </style>
+</head>
+<body class="day-mode">
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <div class="title-bar">
+            <div class="title">
+                <span id="titleIcon">☀️</span>
+                <span id="titleText">Ball Animation</span>
+            </div>
+            <div class="window-controls">
+                <select class="lang-selector" id="langSelector">
+                    <option value="tr">🇹🇷 Türkçe</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="ar">🇸🇦 العربية</option>
+                </select>
+                <button class="theme-toggle" id="themeToggle" title="Theme">☀️</button>
+                <span class="minimize"></span>
+                <span class="maximize"></span>
+                <span class="close"></span>
+            </div>
+        </div>
+        
+        <div class="canvas-wrapper">
+            <canvas id="canvas" width="850" height="500"></canvas>
+            <div class="info-panel" id="infoPanel">
+                <div>🎨 <span id="ballLabel">Toplar</span>: <span id="ballCount">0</span></div>
+                <div>⚡ <span id="speedLabel">Hız</span>: <span id="speedDisplay">1.0x</span></div>
+                <div>💥 <span id="collisionLabel">Çarpışma</span>: <span id="collisionCount">0</span></div>
+                <div>🎮 <span id="statusLabel">Durum</span>: <span id="statusDisplay">Hazır</span></div>
+            </div>
+            <div class="challenge-panel" id="challengePanel">
+                <div id="challengeText">60 saniyede 20 top ekle!</div>
+                <div id="challengeTimer">⏱️ 60s</div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div class="control-section">
+                <div class="section-title" id="sizeTitle">Top Boyutu</div>
+                <div class="ball-selector">
+                    <div class="ball-circle small-ball active" data-size="small"></div>
+                    <div class="ball-circle medium-ball" data-size="medium"></div>
+                    <div class="ball-circle large-ball" data-size="large"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title" id="colorTitle">Renk Seçimi</div>
+                <div class="color-selector">
+                    <div class="color-box red active" data-color="#ff0000"></div>
+                    <div class="color-box blue" data-color="#0000ff"></div>
+                    <div class="color-box yellow" data-color="#ffff00"></div>
+                    <div class="color-box green" data-color="#00ff00"></div>
+                    <div class="color-box purple" data-color="#ff00ff"></div>
+                    <div class="color-box orange" data-color="#ff8800"></div>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="section-title" id="controlTitle">Kontroller</div>
+                <div class="button-group">
+                    <button id="startBtn"><span id="startText">▶ START</span></button>
+                    <button id="stopBtn"><span id="stopText">⏸ STOP</span></button>
+                    <button id="resetBtn"><span id="resetText">🔄 RESET</span></button>
+                    <button id="speedUpBtn"><span id="speedText">⚡ Speed Up</span></button>
+                    <button id="challengeBtn"><span id="challengeText">🎯 Challenge</span></button>
+                    <button id="screenshotBtn"><span id="screenshotText">📸 Ekran</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="resultModal">
+        <div class="modal-content">
+            <h2 id="resultTitle">🎉 Tebrikler!</h2>
+            <p id="resultMessage">Görevi tamamladınız!</p>
+            <p id="resultScore">Skorunuz: <span id="finalScore">0</span></p>
+            <button id="closeModal">Tamam</button>
+        </div>
+    </div>
+
+    <script>
+        /*
+        ============================================
+        KOCAELİ SAĞLIK VE TEKNOLOJİ ÜNİVERSİTESİ
+        2025-2026 GÜZ DÖNEMİ
+        YAZILIM LAB I DERSİ - PROJE 1
+        Animasyonlu Çizim Ekranı
+        ============================================
+        
+        PROJE AÇIKLAMASI:
+        Bu proje, kullanıcının canvas üzerine farklı boyut ve renklerde toplar ekleyebildiği,
+        bu topların fizik kurallarına göre hareket ettiği bir animasyon uygulamasıdır.
+        
+        TEMEL ÖZELLİKLER:
+        1. 3 farklı top boyutu (küçük, orta, büyük)
+        2. 6 farklı renk seçeneği
+        3. START - Animasyonu başlatır
+        4. STOP - Animasyonu durdurur
+        5. RESET - Tüm topları siler ve baştan başlar
+        6. Speed Up - Animasyon hızını artırır
+        
+        GELİŞMİŞ ÖZELLİKLER:
+        - Yerçekimi simülasyonu
+        - Duvarlara çarpınca gerçekçi zıplama
+        - Toplar arası çarpışma
+        - Trail (iz) efekti
+        - Squash & Stretch animasyonu
+        - Gün/Gece modu
+        - 3 dil desteği (Türkçe, English, العربية)
+        - Challenge oyun modu
+        - İstatistik paneli
+        - Ekran görüntüsü alma
+        
+        KULLANILAN TEKNOLOJİLER:
+        - HTML5 Canvas API
+        - JavaScript ES6+
+        - CSS3 Animations
+        
+        FİZİK KURALLARI:
+        - Yerçekimi: Her frame'de topların y hızına eklenir
+        - Sürtünme: Yerde hareket ederken hızı azaltır
+        - Hava direnci: Havada iken hafif yavaşlama
+        - Elastik çarpışma: Duvara çarpınca enerji kaybıyla zıplar
+        ============================================
+        */
+
+        // ==========================================
+        // DİL ÇEVİRİLERİ
+        // ==========================================
+        // Uygulama 3 dili destekler: Türkçe, İngilizce, Arapça
+        const translations = {
+            tr: {
+                title: 'Ball Animation',
+                balls: 'Toplar',
+                speed: 'Hız',
+                collision: 'Çarpışma',
+                status: 'Durum',
+                ready: 'Hazır',
+                running: 'Çalışıyor',
+                stopped: 'Durduruldu',
+                sizeTitle: 'Top Boyutu',
+                colorTitle: 'Renk Seçimi',
+                controlTitle: 'Kontroller',
+                start: '▶ START',
+                stop: '⏸ STOP',
+                reset: '🔄 RESET',
+                speedUp: '⚡ Speed Up',
+                challenge: '🎯 Challenge',
+                screenshot: '📸 Ekran',
+                challengeText: '60 saniyede 20 top ekle!',
+                congratulations: '🎉 Tebrikler!',
+                completed: 'Görevi tamamladınız!',
+                score: 'Skorunuz',
+                ok: 'Tamam'
+            },
+            en: {
+                title: 'Ball Animation',
+                balls: 'Balls',
+                speed: 'Speed',
+                collision: 'Collisions',
+                status: 'Status',
+                ready: 'Ready',
+                running: 'Running',
+                stopped: 'Stopped',
+                sizeTitle: 'Ball Size',
+                colorTitle: 'Color Selection',
+                controlTitle: 'Controls',
+                start: '▶ START',
+                stop: '⏸ STOP',
+                reset: '🔄 RESET',
+                speedUp: '⚡ Speed Up',
+                challenge: '🎯 Challenge',
+                screenshot: '📸 Screen',
+                challengeText: 'Add 20 balls in 60 seconds!',
+                congratulations: '🎉 Congratulations!',
+                completed: 'You completed the challenge!',
+                score: 'Your Score',
+                ok: 'OK'
+            },
+            ar: {
+                title: 'رسوم متحركة الكرة',
+                balls: 'كرات',
+                speed: 'سرعة',
+                collision: 'اصطدام',
+                status: 'الحالة',
+                ready: 'جاهز',
+                running: 'يعمل',
+                stopped: 'متوقف',
+                sizeTitle: 'حجم الكرة',
+                colorTitle: 'اختيار اللون',
+                controlTitle: 'ضوابط',
+                start: '▶ ابدأ',
+                stop: '⏸ قف',
+                reset: '🔄 إعادة',
+                speedUp: '⚡ تسريع',
+                challenge: '🎯 تحدي',
+                screenshot: '📸 شاشة',
+                challengeText: 'أضف 20 كرة في 60 ثانية!',
+                congratulations: '🎉 تهانينا!',
+                completed: 'لقد أكملت التحدي!',
+                score: 'نتيجتك',
+                ok: 'حسنا'
+            }
+        };
+
+        let currentLang = 'tr';
+
+        // ==========================================
+        // DİL DEĞİŞTİRME FONKSİYONU
+        // ==========================================
+        // Kullanıcı dil seçtiğinde tüm UI elementlerini günceller
+        function updateLanguage(lang) {
+            currentLang = lang;
+            const t = translations[lang];
+            
+            document.getElementById('titleText').textContent = t.title;
+            document.getElementById('ballLabel').textContent = t.balls;
+            document.getElementById('speedLabel').textContent = t.speed;
+            document.getElementById('collisionLabel').textContent = t.collision;
+            document.getElementById('statusLabel').textContent = t.status;
+            document.getElementById('sizeTitle').textContent = t.sizeTitle;
+            document.getElementById('colorTitle').textContent = t.colorTitle;
+            document.getElementById('controlTitle').textContent = t.controlTitle;
+            document.getElementById('startText').textContent = t.start;
+            document.getElementById('stopText').textContent = t.stop;
+            document.getElementById('resetText').textContent = t.reset;
+            document.getElementById('speedText').textContent = t.speedUp;
+            document.getElementById('challengeText').textContent = t.challenge;
+            document.getElementById('screenshotText').textContent = t.screenshot;
+            
+            updateStatus(t.ready);
+        }
+
+        // ==========================================
+        // DİL SEÇİCİ EVENT LİSTENER
+        // ==========================================
+        // Dropdown'dan dil seçildiğinde tetiklenir
+        document.getElementById('langSelector').addEventListener('change', (e) => {
+            updateLanguage(e.target.value);
+        });
+
+        // ==========================================
+        // CANVAS VE CONTEXT AYARLARI
+        // ==========================================
+        // Canvas: HTML5 çizim alanı
+        // Context: Çizim işlemlerini yapan nesne
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // ==========================================
+        // OYUN DEĞİŞKENLERİ
+        // ==========================================
+        let balls = [];                    // Tüm topları tutan dizi
+        let isAnimating = false;           // Animasyon durumu (çalışıyor/durdu)
+        let animationId = null;            // requestAnimationFrame ID'si
+        let currentColor = '#ff0000';      // Seçili renk (varsayılan: kırmızı)
+        let currentSize = 20;              // Seçili boyut (varsayılan: küçük)
+        let speedMultiplier = 1.0;         // Hız çarpanı (Speed Up butonu ile artar)
+        let collisionCount = 0;            // Toplam çarpışma sayısı
+        let isDarkMode = false;            // Tema durumu (gün/gece)
+        let isChallenge = false;           // Challenge modu aktif mi?
+        let challengeTimer = 60;           // Challenge için kalan süre
+        let challengeInterval = null;      // Challenge zamanlayıcısı
+
+        // ==========================================
+        // YILDIZLARI OLUŞTUR (GECE MODU İÇİN)
+        // ==========================================
+        // Gece modunda arka planda görünecek 100 adet yıldız oluşturur
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+        createStars();
+
+        // ==========================================
+        // TEMA DEĞİŞTİRME (GÜN/GECE MODU)
+        // ==========================================
+        // Kullanıcı tema butonuna bastığında gün/gece modunu değiştirir
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle('day-mode');
+            document.body.classList.toggle('night-mode');
+            document.getElementById('themeToggle').textContent = isDarkMode ? '🌙' : '☀️';
+            document.getElementById('titleIcon').textContent = isDarkMode ? '🌙' : '☀️';
+        });
+
+        // ==========================================
+        // UI GÜNCELLEME FONKSİYONLARI
+        // ==========================================
+        
+        // Top sayısını günceller
+        function updateBallCount() {
+            document.getElementById('ballCount').textContent = balls.length;
+        }
+
+        // Hız göstergesini günceller
+        function updateSpeedDisplay() {
+            document.getElementById('speedDisplay').textContent = speedMultiplier.toFixed(1) + 'x';
+        }
+
+        // Çarpışma sayısını günceller
+        function updateCollisionCount() {
+            document.getElementById('collisionCount').textContent = collisionCount;
+        }
+
+        // Durum metnini günceller (Hazır/Çalışıyor/Durduruldu)
+        function updateStatus(status) {
+            document.getElementById('statusDisplay').textContent = status;
+        }
+
+        // ==========================================
+        // BALL SINIFI (TOP NESNESİ)
+        // ==========================================
+        /**
+         * Her top için ayrı bir Ball objesi oluşturulur
+         * Bu sınıf topun tüm özelliklerini ve davranışlarını içerir
+         */
+        class Ball {
+            /**
+             * Ball constructor - Yeni bir top oluşturur
+             * @param {number} x - Başlangıç x koordinatı
+             * @param {number} y - Başlangıç y koordinatı
+             * @param {number} radius - Topun yarıçapı
+             * @param {string} color - Topun rengi (hex format)
+             */
+            constructor(x, y, radius, color) {
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.originalRadius = radius;
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 3 + Math.random() * 5;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                
+                this.gravity = 0.4;
+                this.bounce = 0.82;
+                this.friction = 0.99;
+                this.trail = [];
+                this.squashAmount = 0;
+            }
+
+            draw() {
+                // Trail efekti (topun arkasında iz bırakma)
+                ctx.globalAlpha = 0.3;
+                this.trail.forEach((pos, index) => {
+                    const alpha = index / this.trail.length;
+                    ctx.globalAlpha = alpha * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(pos.x, pos.y, this.radius * 0.7, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                });
+                ctx.globalAlpha = 1;
+
+                // Squash & Stretch efekti hesapla
+                // Çarpışma anında top biraz deforme olur (gerçekçi animasyon)
+                const scaleX = 1 + this.squashAmount;
+                const scaleY = 1 - this.squashAmount;
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(scaleX, scaleY);
+
+                // Gölge
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+
+                // Ana top
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Parlama
+                const gradient = ctx.createRadialGradient(
+                    -this.radius * 0.3, -this.radius * 0.3, 0,
+                    0, 0, this.radius
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                ctx.restore();
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+
+            /**
+             * Topun pozisyonunu ve hızını günceller
+             * Fizik hesaplamaları burada yapılır
+             */
+            update() {
+                // Trail güncelleme (en son 10 pozisyonu sakla)
+                this.trail.push({ x: this.x, y: this.y });
+                if (this.trail.length > 10) this.trail.shift();
+
+                // Squash efektini yavaşça azalt
+                this.squashAmount *= 0.9;
+
+                // Yerçekimi uygula (Y hızını artır)
+                this.vy += this.gravity * speedMultiplier;
+                
+                // Hava direnci uygula (Havada iken hafif yavaşlama)
+                this.vx *= 0.995;
+                
+                // Yeni pozisyonu hesapla
+                this.x += this.vx * speedMultiplier;
+                this.y += this.vy * speedMultiplier;
+
+                // ======== DUVAR ÇARPIŞMALARI ========
+                
+                // Sağ duvar çarpışması
+                if (this.x + this.radius > canvas.width) {
+                    this.x = canvas.width - this.radius;
+                    this.vx *= -this.bounce;
+                    this.squashAmount = 0.2;
+                    collisionCount++;
+                    updateCollisionCount();
+                }
+                if (this.x - this.radius < 0) {
+                    this.x = this.radius;
+                    this.vx *= -this.bounce;
+                    this.squashAmount = 0.2;
+                    collisionCount++;
+                    updateCollisionCount();
+                }
+
+                if (this.y + this.radius > canvas.height) {
+                    this.y = canvas.height - this.radius;
+                    this.vy *= -this.bounce;
+                    this.vx *= this.friction;
+                    this.squashAmount = 0.3;
+                    collisionCount++;
+                    updateCollisionCount();
+                    
+                    if (Math.abs(this.vy) < 0.5) this.vy = 0;
+                } else if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.vy *= -this.bounce;
+                    this.squashAmount = 0.2;
+                    collisionCount++;
+                    updateCollisionCount();
+                }
+
+                if (Math.abs(this.vx) < 0.1) this.vx = 0;
+                if (Math.abs(this.vy) < 0.1 && Math.abs(this.y + this.radius - canvas.height) < 2) {
+                    this.vy = 0;
+                }
+
+                // Toplar arası çarpışma
+                balls.forEach(other => {
+                    if (other !== this) {
+                        const dx = other.x - this.x;
+                        const dy = other.y - this.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        const minDist = this.radius + other.radius;
+
+                        if (distance < minDist) {
+                            const angle = Math.atan2(dy, dx);
+                            const targetX = this.x + Math.cos(angle) * minDist;
+                            const targetY = this.y + Math.sin(angle) * minDist;
+                            const ax = (targetX - other.x) * 0.5;
+                            const ay = (targetY - other.y) * 0.5;
+                            this.vx -= ax;
+                            this.vy -= ay;
+                            other.vx += ax;
+                            other.vy += ay;
+                            this.squashAmount = 0.15;
+                            other.squashAmount = 0.15;
+                            collisionCount++;
+                            updateCollisionCount();
+                        }
+                    }
+                });
+            }
+        }
+
+        // Canvas tıklama
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+            
+            const newBall = new Ball(x, y, currentSize, currentColor);
+            balls.push(newBall);
+            
+            updateBallCount();
+            
+            if (!isAnimating) {
+                drawFrame();
+            }
+        });
+
+        // Top boyutu seçimi
+        document.querySelectorAll('.ball-circle').forEach(circle => {
+            circle.addEventListener('click', function() {
+                document.querySelectorAll('.ball-circle').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                
+                const size = this.dataset.size;
+                currentSize = size === 'small' ? 20 : size === 'medium' ? 35 : 50;
+            });
+        });
+
+        // Renk seçimi
+        document.querySelectorAll('.color-box').forEach(box => {
+            box.addEventListener('click', function() {
+                document.querySelectorAll('.color-box').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentColor = this.dataset.color;
+            });
+        });
+
+        // START
+        document.getElementById('startBtn').addEventListener('click', () => {
+            if (!isAnimating && balls.length > 0) {
+                isAnimating = true;
+                const t = translations[currentLang];
+                updateStatus(t.running);
+                animate();
+            }
+        });
+
+        // STOP
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (isAnimating) {
+                isAnimating = false;
+                const t = translations[currentLang];
+                updateStatus(t.stopped);
+                if (animationId) {
+                    cancelAnimationFrame(animationId);
+                }
+            }
+        });
+
+        // RESET
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            isAnimating = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            if (challengeInterval) {
+                clearInterval(challengeInterval);
+            }
+            balls = [];
+            speedMultiplier = 1.0;
+            collisionCount = 0;
+            isChallenge = false;
+            challengeTimer = 60;
+            document.getElementById('challengePanel').classList.remove('active');
+            const t = translations[currentLang];
+            updateStatus(t.ready);
+            updateSpeedDisplay();
+            updateBallCount();
+            updateCollisionCount();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // SPEED UP
+        document.getElementById('speedUpBtn').addEventListener('click', () => {
+            speedMultiplier += 0.5;
+            if (speedMultiplier > 5) speedMultiplier = 5;
+            updateSpeedDisplay();
+        });
+
+        // CHALLENGE
+        document.getElementById('challengeBtn').addEventListener('click', () => {
+            if (isChallenge) return;
+            
+            isChallenge = true;
+            challengeTimer = 60;
+            document.getElementById('challengePanel').classList.add('active');
+            
+            challengeInterval = setInterval(() => {
+                challengeTimer--;
+                document.getElementById('challengeTimer').textContent = `⏱️ ${challengeTimer}s`;
+                
+                if (challengeTimer <= 0) {
+                    clearInterval(challengeInterval);
+                    isChallenge = false;
+                    document.getElementById('challengePanel').classList.remove('active');
+                    
+                    const score = balls.length * 10 + collisionCount * 5;
+                    document.getElementById('finalScore').textContent = score;
+                    
+                    const t = translations[currentLang];
+                    document.getElementById('resultTitle').textContent = t.congratulations;
+                    document.getElementById('resultMessage').textContent = t.completed;
+                    document.getElementById('resultModal').classList.add('active');
+                }
+            }, 1000);
+        });
+
+        // SCREENSHOT
+        document.getElementById('screenshotBtn').addEventListener('click', () => {
+            const dataURL = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'ball-animation.png';
+            link.href = dataURL;
+            link.click();
+        });
+
+        // Modal kapatma
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('resultModal').classList.remove('active');
+        });
+
+        // Animasyon
+        function drawFrame() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            balls.forEach(ball => ball.draw());
+        }
+
+        function animate() {
+            if (!isAnimating) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            balls.forEach(ball => {
+                ball.update();
+                ball.draw();
+            });
+            
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Klavye kontrolleri
+        document.addEventListener('keydown', (e) => {
+            if (e.key === ' ') {
+                e.preventDefault();
+                document.getElementById('startBtn').click();
+            } else if (e.key === 's' || e.key === 'S') {
+                document.getElementById('stopBtn').click();
+            } else if (e.key === 'r' || e.key === 'R') {
+                document.getElementById('resetBtn').click();
+            } else if (e.key === '+') {
+                document.getElementById('speedUpBtn').click();
+            }
+        });
+
+        // İlk başlatma
+        drawFrame();
+        updateSpeedDisplay();
+        updateLanguage('tr');
+    </script>
+</body>
+</html>
